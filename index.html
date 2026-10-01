@@ -4,19 +4,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b0d17">
-  <title>Arcade Zone | Play Something Awesome</title>
+  <meta name="theme-color" content="#0b0815">
+  <title>Arcade Zone — Play Something Awesome</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
-      --bg: #0b0d17;
-      --panel: #141729;
-      --panel2: #1c2036;
-      --border: #2c314d;
-      --text: #f5f5ff;
-      --muted: #a5a9c5;
-      --purple: #8b5cf6;
-      --purple2: #6d28d9;
-      --green: #34d399;
+      --bg: #0b0815;
+      --panel: #151024;
+      --panel2: #1d1630;
+      --purple: #9061ff;
+      --purple-light: #b69aff;
+      --text: #f7f3ff;
+      --muted: #aaa0bd;
+      --border: rgba(196, 170, 255, .15);
+      --green: #76f5bb;
+      --danger: #ff738a;
     }
 
     * { box-sizing: border-box; }
@@ -26,274 +30,329 @@
     body {
       margin: 0;
       min-height: 100vh;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
       color: var(--text);
       background:
-        radial-gradient(ellipse at 50% -15%, #30205e 0%, transparent 45%),
+        radial-gradient(ellipse at 50% -20%, rgba(111, 66, 193, .20), transparent 55%),
         var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+        BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     button, input { font: inherit; }
     button { cursor: pointer; }
 
-    button:focus-visible, input:focus-visible {
-      outline: 2px solid #c4b5fd;
-      outline-offset: 3px;
-    }
-
     .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 5;
       height: 76px;
+      padding: 0 6%;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 16px;
-      padding: 0 max(5%, calc((100% - 1200px) / 2));
-      background: rgba(11, 13, 23, .91);
-      border-bottom: 1px solid rgba(139, 92, 246, .2);
-      backdrop-filter: blur(18px);
+      gap: 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(11, 8, 21, .88);
+      backdrop-filter: blur(16px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 11px;
+      gap: 12px;
       color: var(--text);
       text-decoration: none;
-      font-size: 22px;
-      font-weight: 900;
-      letter-spacing: -.8px;
-      white-space: nowrap;
+      font-size: 21px;
+      font-weight: 850;
+      letter-spacing: -.7px;
     }
 
     .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
       display: grid;
       place-items: center;
-      width: 39px;
-      height: 39px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, var(--purple), #4f46e5);
-      box-shadow: 0 5px 22px #7c3aed40;
-      font-size: 22px;
+      background: linear-gradient(135deg, #a986ff, #7241dc);
+      box-shadow: 0 0 25px rgba(144, 97, 255, .3);
+      font-size: 21px;
     }
 
-    .brand span:last-child { color: #c4b5fd; }
+    .brand span span { color: var(--purple-light); }
 
-    .nav-actions {
+    .nav-right {
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
-    .button {
+    .nav-link {
+      text-decoration: none;
+      color: var(--muted);
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+
+    .nav-link:hover { color: white; }
+
+    .btn {
       border: 1px solid transparent;
-      border-radius: 10px;
+      border-radius: 11px;
       padding: 11px 17px;
       color: white;
-      font-size: 14px;
-      font-weight: 750;
-      transition: transform .15s, filter .15s, background .15s;
+      font-weight: 700;
+      transition: transform .15s, background .15s, border-color .15s;
     }
 
-    .button:hover { filter: brightness(1.13); transform: translateY(-1px); }
-    .button:disabled { opacity: .6; cursor: wait; transform: none; }
+    .btn:hover { transform: translateY(-1px); }
 
-    .primary {
-      background: linear-gradient(135deg, var(--purple), var(--purple2));
-      box-shadow: 0 4px 18px #7c3aed28;
+    .btn-primary {
+      background: linear-gradient(135deg, #9c72ff, #7544e5);
+      box-shadow: 0 6px 22px rgba(117, 68, 229, .20);
     }
 
-    .secondary {
-      background: var(--panel2);
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #ae8bff, #8657f2);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: rgba(255,255,255,.04);
       border-color: var(--border);
     }
 
-    .text-button {
-      background: transparent;
-      border: none;
-      color: #c4b5fd;
+    .btn-secondary:hover { background: rgba(255,255,255,.08); }
+
+    .account-wrap { position: relative; }
+
+    .account-button {
+      max-width: 210px;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 8px 12px 8px 8px;
+      background: var(--panel);
+      color: white;
       font-weight: 700;
-      padding: 5px;
     }
 
-    .user-name {
-      max-width: 180px;
+    .avatar {
+      flex: 0 0 30px;
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      border-radius: 9px;
+      color: white;
+      background: linear-gradient(135deg, #9c72ff, #5c36b6);
+      font-size: 13px;
+    }
+
+    #headerUsername {
       overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
-      color: #ddd6fe;
-      font-size: 14px;
-      font-weight: 700;
+      text-overflow: ellipsis;
+      max-width: 130px;
     }
 
-    main {
-      width: min(1100px, 90%);
-      margin: 0 auto;
-      padding: 48px 0 90px;
+    .account-menu {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 215px;
+      padding: 8px;
+      background: #191329;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      box-shadow: 0 18px 50px rgba(0,0,0,.45);
     }
+
+    .account-menu.open { display: block; }
+
+    .menu-label {
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+      overflow-wrap: anywhere;
+    }
+
+    .menu-action {
+      width: 100%;
+      text-align: left;
+      padding: 11px 10px;
+      color: var(--danger);
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+    }
+
+    .menu-action:hover { background: rgba(255,115,138,.09); }
 
     .hero {
-      position: relative;
-      overflow: hidden;
-      isolation: isolate;
-      min-height: 390px;
-      padding: 75px 25px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 105px 24px 75px;
       text-align: center;
-      border: 1px solid #45366d;
-      border-radius: 25px;
-      background:
-        radial-gradient(ellipse at 50% 0%, #50338a80, transparent 65%),
-        linear-gradient(145deg, #19172f, #101322 70%);
     }
-
-    .hero::before, .hero::after {
-      content: "";
-      position: absolute;
-      z-index: -1;
-      width: 240px;
-      height: 240px;
-      border: 1px solid #a78bfa25;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-
-    .hero::before { top: -155px; left: -90px; }
-    .hero::after { bottom: -180px; right: -80px; width: 330px; height: 330px; }
 
     .eyebrow {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 8px 13px;
-      border: 1px solid #a78bfa45;
+      border: 1px solid rgba(182,154,255,.24);
       border-radius: 100px;
-      background: #8b5cf61b;
-      color: #d6caff;
+      background: rgba(144,97,255,.09);
+      color: var(--purple-light);
       font-size: 12px;
       font-weight: 800;
-      letter-spacing: 1.3px;
       text-transform: uppercase;
+      letter-spacing: 1.4px;
     }
 
-    .eyebrow-dot {
+    .status-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       background: var(--green);
-      box-shadow: 0 0 10px #34d399;
+      box-shadow: 0 0 10px rgba(118,245,187,.65);
     }
 
-    .hero h1 {
-      max-width: 850px;
-      margin: 24px 0 16px;
-      font-size: clamp(39px, 7vw, 76px);
-      line-height: 1.03;
-      letter-spacing: -3px;
-      font-weight: 950;
+    h1 {
+      margin: 24px 0 18px;
+      font-size: clamp(43px, 7vw, 76px);
+      line-height: 1.05;
+      letter-spacing: -3.5px;
+      font-weight: 900;
     }
 
     .gradient-text {
-      color: #c4b5fd;
-      background: linear-gradient(90deg, #c4b5fd, #a78bfa, #818cf8);
+      color: var(--purple-light);
+      background: linear-gradient(90deg, #c5adff, #8e61ff, #d7baff);
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .hero p {
-      max-width: 570px;
-      margin: 0;
+    .hero-description {
+      max-width: 600px;
+      margin: 0 auto;
       color: var(--muted);
+      font-size: 17px;
       line-height: 1.8;
-      font-size: 16px;
     }
 
     .hero-actions {
+      margin-top: 30px;
       display: flex;
-      flex-wrap: wrap;
       justify-content: center;
       gap: 12px;
-      margin-top: 29px;
+      flex-wrap: wrap;
+    }
+
+    .hero-actions .btn { padding: 14px 21px; }
+
+    .features {
+      max-width: 850px;
+      margin: 48px auto 0;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      text-align: left;
+    }
+
+    .feature {
+      padding: 18px;
+      background: rgba(255,255,255,.025);
+      border: 1px solid var(--border);
+      border-radius: 15px;
+    }
+
+    .feature-icon {
+      font-size: 22px;
+      margin-bottom: 10px;
+    }
+
+    .feature strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 5px;
+    }
+
+    .feature p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .library {
+      max-width: 1120px;
+      padding: 20px 24px 100px;
+      margin: 0 auto;
     }
 
     .section-heading {
       display: flex;
-      align-items: end;
       justify-content: space-between;
-      gap: 16px;
-      margin: 55px 0 20px;
+      align-items: end;
+      gap: 15px;
+      margin-bottom: 20px;
     }
 
     .section-heading h2 {
-      margin: 0;
-      font-size: 27px;
+      margin: 0 0 7px;
+      font-size: 25px;
       letter-spacing: -.7px;
     }
 
     .section-heading p {
-      margin: 7px 0 0;
+      margin: 0;
       color: var(--muted);
       font-size: 14px;
     }
 
-    .game-empty {
+    .library-count {
+      color: var(--purple-light);
+      font-size: 12px;
+      border: 1px solid var(--border);
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(144,97,255,.07);
+    }
+
+    .empty-library {
+      min-height: 245px;
+      border: 1px dashed rgba(182,154,255,.23);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(144,97,255,.045), rgba(255,255,255,.012));
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 245px;
-      padding: 35px 20px;
-      border: 1px dashed #383e60;
-      border-radius: 18px;
-      background: #111426aa;
       text-align: center;
+      padding: 35px 20px;
     }
 
     .empty-icon {
+      width: 58px;
+      height: 58px;
       display: grid;
       place-items: center;
-      width: 65px;
-      height: 65px;
-      margin-bottom: 17px;
-      border-radius: 20px;
-      background: #8b5cf61c;
-      border: 1px solid #8b5cf64a;
-      font-size: 30px;
-    }
-
-    .game-empty h3 { margin: 0 0 9px; font-size: 19px; }
-    .game-empty p {
-      max-width: 430px;
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-      font-size: 14px;
-    }
-
-    .features {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-top: 24px;
-    }
-
-    .feature {
-      padding: 22px;
+      background: rgba(144,97,255,.11);
       border: 1px solid var(--border);
-      border-radius: 15px;
-      background: #141729b8;
+      border-radius: 17px;
+      font-size: 27px;
+      margin-bottom: 15px;
     }
 
-    .feature-icon { font-size: 24px; }
-    .feature h3 { margin: 12px 0 7px; font-size: 16px; }
-    .feature p {
+    .empty-library h3 { margin: 0 0 8px; font-size: 17px; }
+
+    .empty-library p {
+      max-width: 390px;
       margin: 0;
       color: var(--muted);
       font-size: 13px;
@@ -301,628 +360,695 @@
     }
 
     footer {
-      padding: 27px 5%;
-      border-top: 1px solid #252941;
-      color: #858aa8;
-      text-align: center;
+      padding: 25px 6%;
+      border-top: 1px solid var(--border);
+      color: #817793;
       font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
     }
 
-    /* Account modal */
-
-    .modal {
-      display: none;
+    /* Authentication modal */
+    .modal-backdrop {
       position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: 100;
+      padding: 20px;
+      display: none;
       align-items: center;
       justify-content: center;
       overflow-y: auto;
-      padding: 20px;
-      background: rgba(3, 4, 12, .82);
-      backdrop-filter: blur(7px);
+      background: rgba(5,3,12,.78);
+      backdrop-filter: blur(10px);
     }
 
-    .modal.open { display: flex; }
+    .modal-backdrop.visible { display: flex; }
 
-    .dialog {
+    .auth-card {
       position: relative;
       width: 100%;
       max-width: 430px;
-      padding: 31px;
-      border: 1px solid #3c3b61;
-      border-radius: 20px;
-      background: linear-gradient(155deg, #1b1b33, #111322 75%);
-      box-shadow: 0 30px 100px #0009;
-      animation: appear .18s ease-out;
+      padding: 30px;
+      border: 1px solid rgba(196,170,255,.22);
+      border-radius: 21px;
+      background:
+        radial-gradient(ellipse at top, rgba(144,97,255,.12), transparent 55%),
+        #151024;
+      box-shadow: 0 30px 100px rgba(0,0,0,.6);
     }
 
-    @keyframes appear {
-      from { opacity: 0; transform: translateY(8px) scale(.99); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    .close-modal {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--muted);
+      background: rgba(255,255,255,.03);
+      font-size: 20px;
     }
 
-    .dialog-logo {
-      display: grid;
-      place-items: center;
+    .auth-logo {
       width: 48px;
       height: 48px;
-      margin-bottom: 20px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, var(--purple), #4f46e5);
-      font-size: 24px;
-    }
-
-    .close-button {
-      position: absolute;
-      top: 13px;
-      right: 14px;
-      width: 37px;
-      height: 37px;
-      border: 1px solid transparent;
-      border-radius: 9px;
-      background: transparent;
-      color: #a5a9c5;
+      display: grid;
+      place-items: center;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #a986ff, #7241dc);
       font-size: 25px;
+      margin-bottom: 19px;
     }
 
-    .close-button:hover { background: var(--panel2); color: white; }
-
-    .dialog h2 { margin: 0 0 8px; font-size: 27px; letter-spacing: -.6px; }
-    .dialog-description { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-
-    .field { margin-top: 17px; }
-
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      color: #dedff0;
-      font-size: 13px;
-      font-weight: 700;
+    .auth-card h2 {
+      margin: 0 0 8px;
+      font-size: 25px;
+      letter-spacing: -.7px;
     }
 
-    .field input {
-      display: block;
-      width: 100%;
-      min-height: 46px;
-      padding: 12px 13px;
-      border: 1px solid #383d5b;
-      border-radius: 9px;
-      background: #0c0e1b;
-      color: white;
-      outline: none;
-      transition: border .15s, box-shadow .15s;
-    }
-
-    .field input::placeholder { color: #666b89; }
-    .field input:focus {
-      border-color: #a78bfa;
-      box-shadow: 0 0 0 3px #8b5cf620;
-    }
-
-    .field-note { margin: 6px 0 0; color: #888eae; font-size: 11px; }
-
-    .submit-button { width: 100%; margin-top: 23px; min-height: 46px; }
-
-    .form-message {
-      display: none;
-      margin-top: 16px;
-      padding: 12px 13px;
-      border-radius: 9px;
-      overflow-wrap: anywhere;
+    .auth-subtitle {
+      margin: 0 0 24px;
+      color: var(--muted);
       font-size: 13px;
       line-height: 1.6;
     }
 
-    .form-message.show { display: block; }
-    .form-message.error { background: #441e2a; color: #ffc0c7; border: 1px solid #773342; }
-    .form-message.success { background: #12362d; color: #a7f3d0; border: 1px solid #21644f; }
-    .form-message.info { background: #222044; color: #ddd6fe; border: 1px solid #454078; }
-
-    .form-switch {
-      margin-top: 20px;
-      color: var(--muted);
-      text-align: center;
-      font-size: 13px;
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      gap: 4px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      margin-bottom: 22px;
     }
 
-    .form-switch .text-button { margin-left: 4px; font-size: 13px; }
+    .auth-tab {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 700;
+    }
 
-    .forgot-row { margin-top: 13px; text-align: right; }
-    .forgot-row button { font-size: 12px; }
+    .auth-tab.active {
+      color: white;
+      background: #2b2044;
+    }
 
-    .hidden { display: none !important; }
+    .field { margin-bottom: 15px; }
+
+    .field label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #dcd3ed;
+    }
+
+    .field input {
+      width: 100%;
+      padding: 13px 14px;
+      color: white;
+      border: 1px solid rgba(196,170,255,.18);
+      border-radius: 10px;
+      outline: none;
+      background: rgba(4,2,10,.38);
+      transition: border-color .15s, box-shadow .15s;
+    }
+
+    .field input::placeholder { color: #70667f; }
+
+    .field input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(144,97,255,.12);
+    }
+
+    .auth-submit { width: 100%; margin-top: 6px; padding: 13px; }
+
+    .auth-submit:disabled { opacity: .65; cursor: wait; }
+
+    .auth-message {
+      display: none;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow-wrap: anywhere;
+    }
+
+    .auth-message.show { display: block; }
+
+    .auth-message.success {
+      color: #a5ffd1;
+      border: 1px solid rgba(118,245,187,.2);
+      background: rgba(118,245,187,.07);
+    }
+
+    .auth-message.error {
+      color: #ffabb9;
+      border: 1px solid rgba(255,115,138,.22);
+      background: rgba(255,115,138,.07);
+    }
+
+    .auth-footnote {
+      margin-top: 17px;
+      text-align: center;
+      color: #817793;
+      font-size: 11px;
+      line-height: 1.6;
+    }
 
     @media (max-width: 650px) {
       .navbar { height: 66px; padding: 0 16px; }
       .brand { font-size: 18px; gap: 8px; }
-      .brand-icon { width: 34px; height: 34px; font-size: 19px; }
-      .user-name { display: none; }
-      .button { padding: 10px 12px; font-size: 13px; }
-      main { width: 92%; padding-top: 25px; }
-      .hero { min-height: 370px; padding: 55px 19px; border-radius: 19px; }
-      .hero h1 { letter-spacing: -1.7px; }
-      .hero p { font-size: 14px; }
-      .section-heading { margin-top: 40px; }
-      .section-heading h2 { font-size: 23px; }
-      .features { grid-template-columns: 1fr; }
-      .feature { padding: 18px; }
-      .dialog { padding: 27px 21px; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        scroll-behavior: auto !important;
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-      }
+      .brand-icon { width: 33px; height: 33px; }
+      .nav-link { display: none; }
+      .account-button { padding: 6px 9px 6px 6px; }
+      #headerUsername { max-width: 95px; }
+      .hero { padding: 75px 20px 55px; }
+      h1 { letter-spacing: -2px; }
+      .hero-description { font-size: 15px; }
+      .features { grid-template-columns: 1fr; max-width: 390px; margin-top: 35px; }
+      .library { padding: 10px 16px 65px; }
+      .section-heading h2 { font-size: 22px; }
+      .auth-card { padding: 25px 21px; }
+      footer { padding: 22px 16px; flex-direction: column; text-align: center; }
     }
   </style>
 </head>
-<body>
 
+<body>
   <header class="navbar">
-    <a class="brand" href="#" aria-label="Arcade Zone homepage">
-      <span class="brand-icon">🎮</span>
-      <span>ARCADE <span>ZONE</span></span>
+    <a class="brand" href="#home" aria-label="Arcade Zone home">
+      <span class="brand-icon">⚡</span>
+      <span>Arcade <span>Zone</span></span>
     </a>
-    <div class="nav-actions" id="accountArea">
-      <button class="button primary" id="openAuth" type="button">Sign In</button>
-    </div>
+
+    <nav class="nav-right" aria-label="Main navigation">
+      <a class="nav-link" href="#home">Home</a>
+      <a class="nav-link" href="#games">Games</a>
+
+      <button id="signInButton" class="btn btn-primary" type="button">
+        Sign In
+      </button>
+
+      <div id="accountWrap" class="account-wrap" hidden>
+        <button id="accountButton" class="account-button" type="button"
+                aria-expanded="false" aria-label="Open account menu">
+          <span id="avatar" class="avatar">A</span>
+          <span id="headerUsername">Player</span>
+          <span aria-hidden="true">⌄</span>
+        </button>
+
+        <div id="accountMenu" class="account-menu">
+          <div id="menuEmail" class="menu-label"></div>
+          <button id="logoutButton" class="menu-action" type="button">
+            ↪ &nbsp; Log Out
+          </button>
+        </div>
+      </div>
+    </nav>
   </header>
 
   <main>
-    <section class="hero">
+    <section id="home" class="hero">
       <div class="eyebrow">
-        <span class="eyebrow-dot"></span>
-        Your next adventure starts here
+        <span class="status-dot"></span>
+        YOUR NEXT FAVORITE GAME STARTS HERE
       </div>
 
-      <h1>READY.<br><span class="gradient-text">SET. PLAY.</span></h1>
+      <h1>
+        Enter the <span class="gradient-text">Arcade Zone</span>
+      </h1>
 
-      <p>
-        Welcome to Arcade Zone — your home for games, discoveries,
-        and awesome gaming experiences. Jump in whenever you want.
+      <p class="hero-description">
+        Discover fun, jump into new worlds, and play at your own pace.
+        Your next gaming adventure starts right here.
       </p>
 
       <div class="hero-actions">
-        <button class="button primary" id="exploreButton" type="button">
-          Explore Games &nbsp; ↓
+        <button class="btn btn-primary" type="button"
+                onclick="document.getElementById('games').scrollIntoView({behavior:'smooth'})">
+          Explore Games &nbsp; →
         </button>
-        <button class="button secondary" id="heroAccountButton" type="button">
-          Create Free Account
+        <button class="btn btn-secondary" type="button" id="heroAccountButton">
+          Create an Account
         </button>
       </div>
-    </section>
 
-    <section id="games">
-      <div class="section-heading">
-        <div>
-          <h2>🎯 Game Library</h2>
-          <p>Find something fun to play.</p>
+      <div class="features">
+        <div class="feature">
+          <div class="feature-icon">🎮</div>
+          <strong>Jump Straight In</strong>
+          <p>Browse the website without needing an account.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">✨</div>
+          <strong>Your Own Account</strong>
+          <p>Create a username and sign in whenever you want.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🚀</div>
+          <strong>More Games Coming</strong>
+          <p>This is the beginning of the Arcade Zone library.</p>
         </div>
       </div>
-
-      <div class="game-empty">
-        <div class="empty-icon">🕹️</div>
-        <h3>The arcade is getting ready!</h3>
-        <p>
-          No games have been added yet. Check back soon for new adventures.
-          You won't need an account to play our games.
-        </p>
-      </div>
     </section>
 
-    <section aria-label="Website features">
-      <div class="features">
-        <article class="feature">
-          <div class="feature-icon">🚀</div>
-          <h3>Jump Straight In</h3>
-          <p>Browse the website freely. Playing games won't require an account.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-icon">👤</div>
-          <h3>Your Own Account</h3>
-          <p>Create an account to have your own username and sign in whenever you return.</p>
-        </article>
-        <article class="feature">
-          <div class="feature-icon">✨</div>
-          <h3>More Coming Soon</h3>
-          <p>This is just the beginning. The game library will grow over time.</p>
-        </article>
+    <section id="games" class="library">
+      <div class="section-heading">
+        <div>
+          <h2>Game Library</h2>
+          <p>Your next adventure will appear here.</p>
+        </div>
+        <span class="library-count">0 GAMES</span>
+      </div>
+
+      <div class="empty-library">
+        <div class="empty-icon">🕹️</div>
+        <h3>The arcade is getting ready</h3>
+        <p>
+          No games have been added yet. Check back later when the first
+          Arcade Zone games arrive!
+        </p>
       </div>
     </section>
   </main>
 
   <footer>
-    © <span id="year"></span> Arcade Zone · Made for players.
+    <span>⚡ Arcade Zone</span>
+    <span>Made for players. More adventures coming soon.</span>
   </footer>
 
-  <!-- Sign-up and login modal -->
-  <div class="modal" id="authModal" role="dialog"
-       aria-modal="true" aria-labelledby="formTitle">
-    <div class="dialog">
-      <button class="close-button" id="closeAuth" type="button"
-              aria-label="Close">&times;</button>
+  <!-- Sign-in / sign-up dialog -->
+  <div id="authBackdrop" class="modal-backdrop" role="dialog"
+       aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-card">
+      <button id="closeModal" class="close-modal" type="button"
+              aria-label="Close sign-in window">×</button>
 
-      <div class="dialog-logo">🎮</div>
-      <h2 id="formTitle">Welcome Back!</h2>
-      <p class="dialog-description" id="formDescription">
+      <div class="auth-logo">⚡</div>
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authSubtitle" class="auth-subtitle">
         Sign in to your Arcade Zone account.
       </p>
 
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active" type="button">Sign In</button>
+        <button id="signupTab" class="auth-tab" type="button">Create Account</button>
+      </div>
+
+      <div id="authMessage" class="auth-message" role="status" aria-live="polite"></div>
+
       <form id="authForm">
-        <div class="field hidden" id="usernameField">
+        <div id="usernameField" class="field" hidden>
           <label for="username">Username</label>
           <input id="username" name="username" type="text"
-                 minlength="3" maxlength="20"
-                 autocomplete="username"
-                 placeholder="Choose a username"
-                 pattern="[A-Za-z0-9_]{3,20}">
-          <p class="field-note">3–20 characters. Letters, numbers and underscores only.</p>
+                 autocomplete="username" minlength="3" maxlength="20"
+                 placeholder="Choose a username">
         </div>
 
         <div class="field">
-          <label for="email">Email Address</label>
+          <label for="email">Email address</label>
           <input id="email" name="email" type="email"
-                 autocomplete="email" maxlength="254"
-                 placeholder="you@example.com" required>
+                 autocomplete="email" required maxlength="254"
+                 placeholder="you@example.com">
         </div>
 
         <div class="field">
           <label for="password">Password</label>
           <input id="password" name="password" type="password"
-                 minlength="8" maxlength="72"
-                 autocomplete="current-password"
-                 placeholder="Enter your password" required>
-          <p class="field-note" id="passwordNote">Enter your account password.</p>
+                 autocomplete="current-password" required minlength="6"
+                 placeholder="Enter your password">
         </div>
 
-        <div class="forgot-row" id="forgotRow">
-          <button class="text-button" id="forgotPassword" type="button">
-            Forgot password?
-          </button>
-        </div>
-
-        <button class="button primary submit-button" id="submitButton"
-                type="submit">Sign In</button>
+        <button id="authSubmit" class="btn btn-primary auth-submit" type="submit">
+          Sign In
+        </button>
       </form>
 
-      <div class="form-message" id="formMessage" role="status"
-           aria-live="polite"></div>
-
-      <div class="form-switch" id="formSwitch">
-        Don't have an account?
-        <button class="text-button" id="switchMode" type="button">Create one</button>
+      <div class="auth-footnote">
+        You can still browse and play games without an account.
       </div>
     </div>
   </div>
 
-  <script type="module">
-    import { createClient } from
-      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+  <script>
+    // -------------------------------------------------------
+    // ARCADE ZONE - SUPABASE AUTHENTICATION
+    // -------------------------------------------------------
+    const SUPABASE_URL = "https://aaiekmdrejpwflaaaqwf.supabase.co";
+    const SUPABASE_PUBLISHABLE_KEY =
+      "sb_publishable_wJOV0N5MkPojBAl4ih-Uvg_EUsBpUwX";
 
-    // Arcade Zone's public Supabase connection details.
-    // A publishable key is intended for browser use.
-    const SUPABASE_URL = 'https://aaiekmdrejpwflaaaqwf.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_wJOV0N5MkPojBAl4ih-Uvg_EUsBpUwX';
+    // Use the current published page, including /games-website/.
+    // In Supabase Authentication > URL Configuration, add this
+    // address to Redirect URLs and set it as the Site URL.
+    const AUTH_REDIRECT_URL =
+      window.location.origin + window.location.pathname;
 
-    const $ = (id) => document.getElementById(id);
+    const supabase = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_PUBLISHABLE_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+          flowType: "pkce"
+        }
+      }
+    );
 
-    const modal = $('authModal');
-    const authForm = $('authForm');
-    const usernameInput = $('username');
-    const emailInput = $('email');
-    const passwordInput = $('password');
-    const usernameField = $('usernameField');
-    const submitButton = $('submitButton');
-    const formMessage = $('formMessage');
-    const accountArea = $('accountArea');
+    let currentMode = "login";
+    let currentUser = null;
 
-    let supabase = null;
-    let mode = 'login';
-    let busy = false;
+    const signInButton = document.getElementById("signInButton");
+    const accountWrap = document.getElementById("accountWrap");
+    const accountButton = document.getElementById("accountButton");
+    const accountMenu = document.getElementById("accountMenu");
+    const headerUsername = document.getElementById("headerUsername");
+    const avatar = document.getElementById("avatar");
+    const menuEmail = document.getElementById("menuEmail");
+    const logoutButton = document.getElementById("logoutButton");
 
-    $('year').textContent = new Date().getFullYear();
+    const authBackdrop = document.getElementById("authBackdrop");
+    const closeModalButton = document.getElementById("closeModal");
+    const heroAccountButton = document.getElementById("heroAccountButton");
+    const authTitle = document.getElementById("authTitle");
+    const authSubtitle = document.getElementById("authSubtitle");
+    const authForm = document.getElementById("authForm");
+    const usernameField = document.getElementById("usernameField");
+    const usernameInput = document.getElementById("username");
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const authSubmit = document.getElementById("authSubmit");
+    const authMessage = document.getElementById("authMessage");
+    const loginTab = document.getElementById("loginTab");
+    const signupTab = document.getElementById("signupTab");
 
-    function showMessage(text, type = 'info') {
-      formMessage.textContent = text;
-      formMessage.className = 'form-message show ' + type;
+    function displayMessage(message, type = "success") {
+      authMessage.textContent = message;
+      authMessage.className = "auth-message show " + type;
     }
 
     function clearMessage() {
-      formMessage.textContent = '';
-      formMessage.className = 'form-message';
+      authMessage.textContent = "";
+      authMessage.className = "auth-message";
     }
 
-    function setMode(nextMode) {
-      mode = nextMode;
-      authForm.reset();
-      clearMessage();
+    function setBusy(isBusy) {
+      authSubmit.disabled = isBusy;
+      authSubmit.textContent = isBusy
+        ? "Please wait..."
+        : currentMode === "signup" ? "Create Account" : "Sign In";
+    }
 
-      const isSignup = mode === 'signup';
-      const isReset = mode === 'reset';
-
-      $('formTitle').textContent = isSignup
-        ? 'Create Account'
-        : isReset ? 'Reset Password' : 'Welcome Back!';
-
-      $('formDescription').textContent = isSignup
-        ? 'Join the arcade. Your next adventure awaits.'
-        : isReset
-          ? 'We will send you a password reset link.'
-          : 'Sign in to your Arcade Zone account.';
-
-      usernameField.classList.toggle('hidden', !isSignup);
-      usernameInput.required = isSignup;
-      usernameInput.disabled = !isSignup;
-
-      passwordInput.required = !isReset;
-      passwordInput.disabled = isReset;
-      passwordInput.autocomplete = isSignup ? 'new-password' : 'current-password';
-      passwordInput.minLength = isSignup ? 8 : 1;
-      passwordInput.placeholder = isReset
-        ? 'Not needed for password reset'
-        : isSignup ? 'At least 8 characters' : 'Enter your password';
-
-      $('passwordNote').textContent = isSignup
-        ? 'Use at least 8 characters.'
-        : isReset ? 'We will email you a secure reset link.'
-        : 'Enter your account password.';
-
-      $('forgotRow').classList.toggle('hidden', isSignup || isReset);
-      $('formSwitch').classList.toggle('hidden', isReset);
-
-      $('formSwitch').replaceChildren();
-
-      if (!isReset) {
-        $('formSwitch').append(
-          document.createTextNode(
-            isSignup ? 'Already have an account? ' : "Don't have an account? "
-          )
-        );
-
-        const switchButton = document.createElement('button');
-        switchButton.className = 'text-button';
-        switchButton.type = 'button';
-        switchButton.textContent = isSignup ? 'Sign in' : 'Create one';
-        switchButton.addEventListener('click', () => {
-          setMode(mode === 'signup' ? 'login' : 'signup');
-        });
-        $('formSwitch').appendChild(switchButton);
+    function getUsername(user) {
+      const savedUsername = user?.user_metadata?.username;
+      if (savedUsername && savedUsername.trim()) {
+        return savedUsername.trim();
       }
-
-      submitButton.textContent = isSignup
-        ? 'Create Account'
-        : isReset ? 'Send Reset Link' : 'Sign In';
+      return user?.email ? user.email.split("@")[0] : "Player";
     }
 
-    function openModal(nextMode = 'login') {
-      if (busy) return;
-      setMode(nextMode);
-      modal.classList.add('open');
-      setTimeout(() => {
-        if (nextMode === 'signup') usernameInput.focus();
+    function updateHeader(user) {
+      currentUser = user || null;
+
+      if (currentUser) {
+        const username = getUsername(currentUser);
+        signInButton.hidden = true;
+        accountWrap.hidden = false;
+        headerUsername.textContent = username;
+        avatar.textContent = username.charAt(0).toUpperCase();
+        menuEmail.textContent = currentUser.email || "";
+        heroAccountButton.textContent = "You're signed in ✓";
+      } else {
+        signInButton.hidden = false;
+        accountWrap.hidden = true;
+        headerUsername.textContent = "Player";
+        avatar.textContent = "A";
+        menuEmail.textContent = "";
+        heroAccountButton.textContent = "Create an Account";
+        accountMenu.classList.remove("open");
+        accountButton.setAttribute("aria-expanded", "false");
+      }
+    }
+
+    function openAuth(mode = "login") {
+      setMode(mode);
+      authBackdrop.classList.add("visible");
+      document.body.style.overflow = "hidden";
+      window.setTimeout(() => {
+        if (mode === "signup") usernameInput.focus();
         else emailInput.focus();
-      }, 30);
+      }, 50);
     }
 
-    function closeModal() {
-      if (busy) return;
-      modal.classList.remove('open');
+    function closeAuth() {
+      authBackdrop.classList.remove("visible");
+      document.body.style.overflow = "";
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      const isSignup = mode === "signup";
+
+      authTitle.textContent = isSignup ? "Join Arcade Zone" : "Welcome back";
+      authSubtitle.textContent = isSignup
+        ? "Create your account and choose your player name."
+        : "Sign in to your Arcade Zone account.";
+
+      usernameField.hidden = !isSignup;
+      usernameInput.required = isSignup;
+      passwordInput.autocomplete = isSignup ? "new-password" : "current-password";
+
+      loginTab.classList.toggle("active", !isSignup);
+      signupTab.classList.toggle("active", isSignup);
       clearMessage();
+      setBusy(false);
     }
 
-    $('openAuth').addEventListener('click', () => openModal('login'));
-    $('heroAccountButton').addEventListener('click', () => openModal('signup'));
-    $('closeAuth').addEventListener('click', closeModal);
-
-    modal.addEventListener('click', (event) => {
-      if (event.target === modal) closeModal();
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && modal.classList.contains('open')) {
-        closeModal();
-      }
-    });
-
-    $('exploreButton').addEventListener('click', () => {
-      $('games').scrollIntoView({ behavior: 'smooth' });
-    });
-
-    function renderAccount(user) {
-      accountArea.replaceChildren();
-
-      if (!user) {
-        const signInButton = document.createElement('button');
-        signInButton.className = 'button primary';
-        signInButton.textContent = 'Sign In';
-        signInButton.type = 'button';
-        signInButton.addEventListener('click', () => openModal('login'));
-        accountArea.appendChild(signInButton);
-        $('heroAccountButton').textContent = 'Create Free Account';
-        return;
-      }
-
-      const username = user.user_metadata?.username || user.email?.split('@')[0] || 'Player';
-
-      const name = document.createElement('span');
-      name.className = 'user-name';
-      name.textContent = '👋 ' + username;
-      name.title = username;
-
-      const logoutButton = document.createElement('button');
-      logoutButton.className = 'button secondary';
-      logoutButton.textContent = 'Log Out';
-      logoutButton.type = 'button';
-
-      logoutButton.addEventListener('click', async () => {
-        if (busy) return;
-        logoutButton.disabled = true;
-
-        const { error } = await supabase.auth.signOut();
-
-        if (error) {
-          alert('Could not log out. Please try again.');
-          logoutButton.disabled = false;
-        }
-      });
-
-      accountArea.append(name, logoutButton);
-      $('heroAccountButton').textContent = 'Account Connected ✓';
-    }
-
-    $('forgotPassword').addEventListener('click', () => openModal('reset'));
-
-    authForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      if (busy) return;
-
-      if (!supabase) {
-        showMessage(
-          'The website could not connect to Supabase. Check your project URL and publishable key.',
-          'error'
+    signInButton.addEventListener("click", () => openAuth("login"));
+    heroAccountButton.addEventListener("click", () => {
+      if (currentUser) {
+        accountMenu.classList.toggle("open");
+        accountButton.setAttribute(
+          "aria-expanded",
+          String(accountMenu.classList.contains("open"))
         );
-        return;
+      } else {
+        openAuth("signup");
       }
+    });
+
+    loginTab.addEventListener("click", () => setMode("login"));
+    signupTab.addEventListener("click", () => setMode("signup"));
+    closeModalButton.addEventListener("click", closeAuth);
+
+    authBackdrop.addEventListener("click", (event) => {
+      if (event.target === authBackdrop) closeAuth();
+    });
+
+    accountButton.addEventListener("click", () => {
+      const isOpen = accountMenu.classList.toggle("open");
+      accountButton.setAttribute("aria-expanded", String(isOpen));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!accountWrap.contains(event.target)) {
+        accountMenu.classList.remove("open");
+        accountButton.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeAuth();
+    });
+
+    // Listen for sign-in, sign-out, and sessions restored after
+    // the user clicks an email confirmation link.
+    supabase.auth.onAuthStateChange((event, session) => {
+      updateHeader(session?.user || null);
+
+      if (event === "SIGNED_IN" && session?.user) {
+        closeAuth();
+      }
+
+      if (event === "SIGNED_OUT") {
+        updateHeader(null);
+      }
+    });
+
+    // Initialize the page with any saved session. Supabase's URL
+    // detection handles PKCE ?code=... confirmation callbacks and
+    // confirmation links containing session tokens in the URL hash.
+    async function initializeAuth() {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+
+        if (error) throw error;
+
+        updateHeader(data.session?.user || null);
+
+        const url = new URL(window.location.href);
+        const hasAuthCode = url.searchParams.has("code");
+        const hashParams = new URLSearchParams(
+          window.location.hash.replace(/^#/, "")
+        );
+        const hasAuthTokens =
+          hashParams.has("access_token") ||
+          hashParams.has("error_description");
+
+        if (hasAuthCode || hasAuthTokens) {
+          // Allow the SDK to process the callback first. Only remove
+          // authentication parameters after a session is available.
+          const { data: refreshed, error: refreshError } =
+            await supabase.auth.getSession();
+
+          if (!refreshError && refreshed.session) {
+            updateHeader(refreshed.session.user);
+            window.history.replaceState(
+              {},
+              document.title,
+              window.location.pathname
+            );
+          } else if (hashParams.has("error_description")) {
+            const errorText = hashParams.get("error_description")
+              .replace(/\+/g, " ");
+            openAuth("login");
+            displayMessage(
+              "The confirmation link returned an error: " + errorText +
+              " You can try signing in or request a new confirmation email.",
+              "error"
+            );
+          }
+        }
+
+        // If Supabase reports an authentication error in the URL,
+        // show it instead of silently ignoring it.
+        const urlError = url.searchParams.get("error_description");
+        if (urlError) {
+          openAuth("login");
+          displayMessage(
+            decodeURIComponent(urlError.replace(/\+/g, " ")),
+            "error"
+          );
+        }
+      } catch (error) {
+        console.error("Could not initialize authentication:", error);
+      }
+    }
+
+    authForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      clearMessage();
 
       const email = emailInput.value.trim();
       const password = passwordInput.value;
       const username = usernameInput.value.trim();
 
-      if (!email) {
-        showMessage('Please enter your email address.', 'error');
-        return;
-      }
-
-      if (mode === 'signup') {
-        if (!/^[A-Za-z0-9_]{3,20}$/.test(username)) {
-          showMessage(
-            'Your username must be 3–20 characters and contain only letters, numbers or underscores.',
-            'error'
+      if (currentMode === "signup") {
+        if (username.length < 3 || username.length > 20) {
+          displayMessage(
+            "Your username must be between 3 and 20 characters.",
+            "error"
           );
           return;
         }
 
-        if (password.length < 8 || password.length > 72) {
-          showMessage('Your password must be between 8 and 72 characters.', 'error');
+        if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+          displayMessage(
+            "Use only letters, numbers, underscores, and hyphens in your username.",
+            "error"
+          );
           return;
         }
       }
 
-      const submittedMode = mode;
-      busy = true;
-      submitButton.disabled = true;
-      submitButton.textContent = 'Please wait...';
-      clearMessage();
+      setBusy(true);
 
       try {
-        if (submittedMode === 'signup') {
+        if (currentMode === "signup") {
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
             options: {
-              emailRedirectTo: window.location.href.split('#')[0],
-              data: { username }
+              data: { username },
+              emailRedirectTo: AUTH_REDIRECT_URL
             }
           });
 
           if (error) throw error;
 
-          authForm.reset();
-
-          if (data.session) {
-            showMessage('Account created successfully! You are now signed in.', 'success');
-            setTimeout(() => {
-              modal.classList.remove('open');
-              clearMessage();
-            }, 1800);
+          if (data.session && data.user) {
+            updateHeader(data.user);
+            closeAuth();
           } else {
-            showMessage(
-              'Account created! Check your email for a confirmation link. Once you confirm your email, come back here and sign in.',
-              'success'
+            displayMessage(
+              "Account created! Check your email and click the confirmation link. " +
+              "It should return you here and sign you in automatically. " +
+              "If it only confirms the account, open Sign In and use your email and password.",
+              "success"
             );
           }
-        }
-
-        else if (submittedMode === 'login') {
-          const { error } = await supabase.auth.signInWithPassword({
+        } else {
+          const { data, error } = await supabase.auth.signInWithPassword({
             email,
             password
           });
 
           if (error) throw error;
 
-          showMessage('Welcome back! You are signed in.', 'success');
-          setTimeout(() => {
-            modal.classList.remove('open');
-            clearMessage();
-          }, 900);
-        }
-
-        else if (submittedMode === 'reset') {
-          const redirectTo = window.location.href.split('#')[0];
-          const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo
-          });
-
-          if (error) throw error;
-
-          showMessage(
-            'If an account exists for that email, a password reset email will be sent. Check your inbox.',
-            'success'
-          );
+          updateHeader(data.user);
+          closeAuth();
           authForm.reset();
         }
       } catch (error) {
-        // Supabase errors are shown as text, never interpreted as HTML.
-        let message = error?.message || 'Something went wrong. Please try again.';
+        console.error("Authentication error:", error);
+        let message = error.message || "Something went wrong. Please try again.";
 
-        if (message.toLowerCase().includes('email not confirmed')) {
-          message = 'Please confirm your email address using the link we sent before signing in.';
-        } else if (message.toLowerCase().includes('invalid login credentials')) {
-          message = 'Incorrect email or password. Check your details and try again.';
-        } else if (message.toLowerCase().includes('rate limit')) {
-          message = 'Too many attempts. Please wait a little while and try again.';
+        if (message.toLowerCase().includes("invalid login credentials")) {
+          message = "Email or password is incorrect. If you just signed up, confirm your email first.";
+        } else if (message.toLowerCase().includes("email not confirmed")) {
+          message = "Your email hasn't been confirmed yet. Open the confirmation email and click its link.";
+        } else if (message.toLowerCase().includes("already registered")) {
+          message = "That email already has an account. Switch to Sign In.";
         }
 
-        showMessage(message, 'error');
+        displayMessage(message, "error");
       } finally {
-        busy = false;
-        submitButton.disabled = false;
-
-        if (mode === 'signup') submitButton.textContent = 'Create Account';
-        else if (mode === 'reset') submitButton.textContent = 'Send Reset Link';
-        else submitButton.textContent = 'Sign In';
+        setBusy(false);
       }
     });
 
-    // Connect only when the expected public configuration is present.
-    if (
-      SUPABASE_URL.startsWith('https://') &&
-      SUPABASE_URL.endsWith('.supabase.co') &&
-      SUPABASE_KEY.startsWith('sb_publishable_')
-    ) {
+    logoutButton.addEventListener("click", async () => {
+      logoutButton.disabled = true;
+
       try {
-        supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        const { data, error } = await supabase.auth.getSession();
-
+        const { error } = await supabase.auth.signOut();
         if (error) throw error;
-        renderAccount(data.session?.user || null);
 
-        supabase.auth.onAuthStateChange((_event, session) => {
-          renderAccount(session?.user || null);
-        });
+        updateHeader(null);
+        accountMenu.classList.remove("open");
+        closeAuth();
       } catch (error) {
-        console.error('Supabase initialization failed:', error);
-        renderAccount(null);
+        console.error("Sign out error:", error);
+        alert("Could not log out: " + (error.message || "Please try again."));
+      } finally {
+        logoutButton.disabled = false;
       }
-    } else {
-      console.error('Check the Supabase project URL and publishable key.');
-      renderAccount(null);
-    }
+    });
+
+    // Show a useful message if a confirmation callback failed.
+    initializeAuth();
   </script>
 </body>
 </html>
